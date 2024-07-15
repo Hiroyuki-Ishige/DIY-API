@@ -44,6 +44,25 @@ app.get("/jokes/:id", async (req, res) => {
 
 //3. GET a jokes by filtering on the joke type
 
+app.get("/filter", async (req, res) => {
+  try {
+    const type = req.query.type;
+    if (!type) {
+      res.status(400).send("Type query parameter is required");
+      return;
+    }
+
+    const filteredJokes = jokes.filter((j) => j.jokeType.toLowerCase() === type.toLowerCase());
+    if (filteredJokes.length > 0) {
+      res.json(filteredJokes);
+    } else {
+      res.status(404).send("No jokes found for the specified type");
+    }
+  } catch (err) {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 //4. POST a new joke
 
 //5. PUT a joke
