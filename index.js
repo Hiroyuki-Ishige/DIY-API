@@ -10,6 +10,7 @@ const port = 3000;
 const masterKey = "4VGP2DN-6EWM4SJ-N6FGRHV-Z3PR3TT";
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // Add this line to parse JSON request bodies
 
 // Function to get a random item from an array
 function getRandomItem(array) {
@@ -31,6 +32,8 @@ app.get("/random", async (req, res) => {
 app.get("/jokes/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id); // Convert the id in roothandler from string to integer
+    console.log(id);
+
     const joke = jokes.find((j) => j.id === id); // Find the joke with the matching id
     if (joke) {
       res.json(joke);
@@ -52,7 +55,9 @@ app.get("/filter", async (req, res) => {
       return;
     }
 
-    const filteredJokes = jokes.filter((j) => j.jokeType.toLowerCase() === type.toLowerCase());
+    const filteredJokes = jokes.filter(
+      (j) => j.jokeType.toLowerCase() === type.toLowerCase()
+    );
     if (filteredJokes.length > 0) {
       res.json(filteredJokes);
     } else {
@@ -64,10 +69,79 @@ app.get("/filter", async (req, res) => {
 });
 
 //4. POST a new joke
+app.post("/jokes", async (req, res) => {
+  try {
+    const jokeText = req.body.text;
+    const jokeType = req.body.type;
+
+    //console.log(`Post-text: ${req.body.text}`);
+    //console.log(`Post-type: ${req.body.type}`);
+
+    if (!jokeText || !jokeType) {
+      res.status(400).send("Joke text and Joke type are required");
+      return;
+    }
+    const newJoke = {
+      id: jokes.length + 1,
+      jokeText,
+      jokeType,
+    };
+
+    jokes.push(newJoke);
+    res.json(newJoke);
+    console.log(jokes.slice(-1));
+  } catch (err) {
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 //5. PUT a joke
+app.put("/jokes/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id); // Convert the id in roothandler from string to integer
+    const updateJoke = {
+      id: id,
+      jokeText: req.body.text,
+      jokyType: req.body.type,
+    };
+
+    const jokeIndex = jokes.findIndex((j) => j.id === id); // Find the joke with the matching id
+    if (jokeIndex) {
+      jokes[jokeIndex] = updateJoke;
+      res.json(jokes[jokeIndex]);
+      console.log(jokes[jokeIndex]);
+    } else {
+      res.status(404).send("Indicated Joke not found"); // If the joke is not found, respond with 404 status
+    }
+  } catch (err) {
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 //6. PATCH a joke
+app.patch("/jokes/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id); // Convert the id in roothandler from string to integer
+    const existingJoke = jokes.find((j) => j.id === id); // Find the joke with the id 
+    
+    const updateJoke = {
+      id: id,
+      jokeText: req.body.text ||existingJoke.jokeText,
+      jokyType: req.body.type || existingJoke.jokeType,
+    };
+
+    const jokeIndex = jokes.findIndex((j) => j.id === id); // Find the joke with the matching id
+    if (jokeIndex) {
+      jokes[jokeIndex] = updateJoke;
+      res.json(jokes[jokeIndex]);
+      console.log(jokes[jokeIndex]);
+    } else {
+      res.status(404).send("Indicated Joke not found"); // If the joke is not found, respond with 404 status
+    }
+  } catch (err) {
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 //7. DELETE Specific joke
 
