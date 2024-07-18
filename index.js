@@ -32,7 +32,7 @@ app.get("/random", async (req, res) => {
 app.get("/jokes/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id); // Convert the id in roothandler from string to integer
-    console.log(id);
+    console.log(`GET specific joke id: ${id}`);
 
     const joke = jokes.find((j) => j.id === id); // Find the joke with the matching id
     if (joke) {
@@ -122,11 +122,11 @@ app.put("/jokes/:id", async (req, res) => {
 app.patch("/jokes/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id); // Convert the id in roothandler from string to integer
-    const existingJoke = jokes.find((j) => j.id === id); // Find the joke with the id 
-    
+    const existingJoke = jokes.find((j) => j.id === id); // Find the joke with the id
+
     const updateJoke = {
       id: id,
-      jokeText: req.body.text ||existingJoke.jokeText,
+      jokeText: req.body.text || existingJoke.jokeText,
       jokyType: req.body.type || existingJoke.jokeType,
     };
 
@@ -144,8 +144,42 @@ app.patch("/jokes/:id", async (req, res) => {
 });
 
 //7. DELETE Specific joke
+app.delete("/jokes/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id); // Convert the id in roothandler from string to integer
+    const jokeIndex = jokes.findIndex((j) => j.id === id); // Find the joke with the matching id
+    if (jokeIndex !==-1) {
+      const deletedJoke = jokes.splice(jokeIndex,1);
+      console.log(`Deleted joke${deletedJoke[0].jokeText}`);
+      res.json(deletedJoke[0]);
+      
+    } else {
+      res.status(404).send(`Joke with ID: ${id} not found`); // If the joke is not found, respond with 404 status
+    }
+  } catch (err) {
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 //8. DELETE All jokes
+app.delete("/all", async (req, res) => {
+  try {
+    const key = req.query.key;
+    
+    if (key === masterKey) {
+      //jokes.length = 0; //Clear the jokes array
+      jokes = [];
+
+      res.send(`All jokes are deleted`);
+      
+    } else {
+      res.status(403).send(`Forbidden: Invalid master key.`); // If the joke is not found, respond with 404 status
+    }
+  } catch (err) {
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Successfully started server on port ${port}.`);
